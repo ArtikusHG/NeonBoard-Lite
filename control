@@ -1,0 +1,12 @@
+Package: com.artikus.neonboard-lite
+Name: NeonBoard Lite
+Depends: mobilesubstrate, preferenceloader
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: An awesome MobileSubstrate tweak!
+Maintainer: ArtikusHG
+Author: ArtikusHG
+Section: Tweaks
+Replaces: com.anemonetheming.anemone, winterboard, com.codethemed.iconbundles, com.spark.snowboard, com.spark.snowboard.dock, com.spark.snowboard.fonts, com.spark.snowboard.effects, com.spark.snowboard.masks, com.spark.snowboard.labels, com.spark.snowboard.pagedots, com.spark.snowboard.proceduralwallpapers, com.spark.snowboard.respringextension, com.spark.snowboard.settingsicons, com.spark.snowboard.sounds, com.spark.snowboard.statusbar, com.spark.snowboard.ui
+Provides: com.anemonetheming.anemone, winterboard, com.codethemed.iconbundles, com.spark.snowboard, com.spark.snowboard.dock, com.spark.snowboard.fonts, com.spark.snowboard.effects, com.spark.snowboard.masks, com.spark.snowboard.labels, com.spark.snowboard.pagedots, com.spark.snowboard.proceduralwallpapers, com.spark.snowboard.respringextension, com.spark.snowboard.settingsicons, com.spark.snowboard.sounds, com.spark.snowboard.statusbar, com.spark.snowboard.ui
+Conflicts: com.artikus.neonboard, com.anemonetheming.anemone, winterboard, com.codethemed.iconbundles, com.spark.snowboard, com.spark.snowboard.dock, com.spark.snowboard.fonts, com.spark.snowboard.effects, com.spark.snowboard.masks, com.spark.snowboard.labels, com.spark.snowboard.pagedots, com.spark.snowboard.proceduralwallpapers, com.spark.snowboard.respringextension, com.spark.snowboard.settingsicons, com.spark.snowboard.sounds, com.spark.snowboard.statusbar, com.spark.snowboard.ui
