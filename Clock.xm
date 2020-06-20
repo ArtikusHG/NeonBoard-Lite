@@ -19,8 +19,6 @@ NSArray *themes;
     @"ClockIconSecondHand" : @"seconds",
     @"ClockIconMinuteHand" : @"minutes",
     @"ClockIconHourHand" : @"hours",
-    @"ClockIconBlackDot" : @"blackDot",
-    @"ClockIconRedDot" : @"redDot",
     @"ClockIconBlackDot" : @"hourMinuteDot",
     @"ClockIconRedDot" : @"secondDot",
     @"ClockIconHourMinuteDot" : @"hourMinuteDot",
