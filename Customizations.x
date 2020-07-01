@@ -37,18 +37,21 @@
 %end
 
 // Hide folder icon background
-%group NoFolderIconBgiOS13
+%group NoFolderIconBg
 %hook SBFolderIconImageView
 - (void)setBackgroundView:(UIView *)backgroundView {}
 %end
 %end
 
 %ctor {
-  NSDictionary *prefs = [Neon prefs];
+  if (!%c(Neon)) dlopen("/Library/MobileSubstrate/DynamicLibraries/NeonEngine.dylib", RTLD_LAZY);
+  if (!%c(Neon)) return;
+
+  NSDictionary *prefs = [%c(Neon) prefs];
   if (!prefs) return;
   if([[prefs valueForKey:@"kNoOverlay"] boolValue]) %init(NoOverlay);
   if([[prefs valueForKey:@"kHideLabels"] boolValue]) %init(HideLabels);
   if([[prefs valueForKey:@"kNoDockBg"] boolValue]) %init(NoDockBg);
   if([[prefs valueForKey:@"kNoPageDots"] boolValue]) %init(NoPageDots);
-  if([[prefs valueForKey:@"kNoFolderIconBg"] boolValue]) %init(NoFolderIconBgiOS13);
+  if([[prefs valueForKey:@"kNoFolderIconBg"] boolValue]) %init(NoFolderIconBg);
 }

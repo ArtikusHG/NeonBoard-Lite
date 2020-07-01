@@ -1,17 +1,14 @@
 #include "Neon.h"
 
 @interface SBClockApplicationIconImageView
+- (UIImage *)contentsImage;
 @end
-
-@interface _UIAssetManager
-@property (nonatomic, readonly) NSBundle *bundle;
-+ (instancetype)assetManagerForBundle:(NSBundle *)bundle;
-- (UIImage *)imageNamed:(NSString *)name;
-@end
-
-%hook SBClockApplicationIconImageView
 
 NSArray *themes;
+
+%group Themes
+
+%hook SBClockApplicationIconImageView
 
 - (instancetype)initWithFrame:(CGRect)frame {
   self = %orig;
@@ -25,8 +22,14 @@ NSArray *themes;
     @"ClockIconSecondDot" : @"secondDot"
   }];
   for (NSString *key in [files allKeys]) {
-    _UIAssetManager *manager = [%c(_UIAssetManager) assetManagerForBundle:[NSBundle mainBundle]];
-    UIImage *image = [manager imageNamed:key];
+    UIImage *image;
+    for (NSString *theme in themes) {
+      NSString *path = [%c(Neon) fullPathForImageNamed:key atPath:[NSString stringWithFormat:@"/Library/Themes/%@/Bundles/com.apple.springboard/", theme]];
+      if (path) {
+        image = [UIImage imageWithContentsOfFile:path];
+        break;
+      }
+    }
     if (!image) continue;
     const char *ivarName = [[@"_" stringByAppendingString:[files objectForKey:key]] cStringUsingEncoding:NSUTF8StringEncoding];
     MSHookIvar<CALayer *>(self, ivarName).contents = (id)[image CGImage];
@@ -36,22 +39,44 @@ NSArray *themes;
 
 %end
 
-%hook _UIAssetManager
-
-- (UIImage *)imageNamed:(NSString *)name configuration:(id)configuration cachingOptions:(id)cachingOptions attachCatalogImage:(BOOL)attachCatalogImage {
-  if (name.length > 4 && [[name substringFromIndex:name.length - 4] isEqualToString:@".png"]) name = [name substringToIndex:name.length - 4];
+UIImage *customClockBackground(CGSize size, BOOL masked) {
+  UIImage *custom;
   for (NSString *theme in themes) {
-    NSBundle *bundle = self.bundle ? : [NSBundle mainBundle];
-    NSString *imagePath = [NSString stringWithFormat:@"/Library/Themes/%@/Bundles/%@/", theme, [bundle bundleIdentifier]];
-    NSString *path = [Neon fullPathForImageNamed:name atPath:imagePath];
-    // use com.apple.springboard instead of com.apple.SpringBoardHome and such weird shits
-    if (!path && [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.apple.springboard"]) {
-      imagePath = [NSString stringWithFormat:@"/Library/Themes/%@/Bundles/com.apple.springboard/", theme];
-      path = [Neon fullPathForImageNamed:name atPath:imagePath];
+    NSString *path = [%c(Neon) fullPathForImageNamed:@"ClockIconBackgroundSquare" atPath:[NSString stringWithFormat:@"/Library/Themes/%@/Bundles/com.apple.springboard/", theme]];
+    if (path) {
+      custom = [UIImage imageWithContentsOfFile:path];
+      break;
     }
-    if (path) return [UIImage imageWithContentsOfFile:path];
   }
-  return %orig;
+  if (!custom) return nil;
+  UIGraphicsBeginImageContextWithOptions(size, NO, [UIScreen mainScreen].scale);
+  if (masked) CGContextClipToMask(UIGraphicsGetCurrentContext(), CGRectMake(0, 0, size.width, size.height), [%c(Neon) getMaskImage].CGImage);
+  [custom drawInRect:CGRectMake(0, 0, size.width, size.height)];
+  custom = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  return custom;
+}
+
+%hook SBClockApplicationIconImageView
+
+- (UIImage *)contentsImage {
+  return customClockBackground(%orig.size, YES) ? : %orig;
+}
+
+- (UIImage *)squareContentsImage {
+  return customClockBackground(%orig.size, NO) ? : %orig;
 }
 
 %end
+
+%end
+
+%ctor {
+  if (!%c(Neon)) dlopen("/Library/MobileSubstrate/DynamicLibraries/NeonEngine.dylib", RTLD_LAZY);
+  if (!%c(Neon)) return;
+
+	if ([%c(Neon) themes] && [%c(Neon) themes].count > 0) {
+    themes = [%c(Neon) themes];
+    %init(Themes);
+  }
+}

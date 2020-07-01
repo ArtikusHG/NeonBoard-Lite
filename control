@@ -1,9 +1,9 @@
 Package: com.artikus.neonboard-lite
 Name: NeonBoard Lite
 Depends: mobilesubstrate, preferenceloader
-Version: 1.0.0
+Version: 1.1
 Architecture: iphoneos-arm
-Description: An awesome MobileSubstrate tweak!
+Description: A lightweight simple theming engine for iOS 13. Does not support glyph themes.
 Maintainer: ArtikusHG
 Author: ArtikusHG
 Section: Tweaks

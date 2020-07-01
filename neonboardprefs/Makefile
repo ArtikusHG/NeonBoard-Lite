@@ -2,10 +2,11 @@ include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = neonboardprefs
 
-DEBUG = 0
-FINALPACKAGE = 1
+#DEBUG = 0
+#FINALPACKAGE = 1
 
-ARCHS = arm64 arm64e
+#ARCHS = arm64 arm64e
+ARCHS = arm64
 TARGET := iphone:clang:13.5:13.0
 
 neonboardprefs_FILES = NBPRootListController.m CustomizationController.m ThemeListViewController.m

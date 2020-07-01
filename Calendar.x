@@ -1,4 +1,13 @@
-// https://github.com/AnemoneTeam/Anemone-OSS
+// based on https://github.com/AnemoneTeam/Anemone-OSS. as much as i dislike coolstar, thank you.
+
+@interface ISImage : NSObject
+- (instancetype)initWithCGImage:(CGImageRef)CGImage scale:(CGFloat)scale;
+@end
+
+@interface ISImageDescriptor
+@property (assign, nonatomic) CGSize size;
+@property (assign, nonatomic) BOOL shouldApplyMask;
+@end
 
 #include "Neon.h"
 #include "UIColor+CSSColors.h"
@@ -33,13 +42,20 @@ id dayObject(NSString *key) {
 
 %group Calendar
 
-%hook CUIKDefaultIconGenerator
+%hook CUIKIcon
 
-+ (void)_drawIconInContext:(CGContextRef)ctx imageSize:(CGSize)imageSize scale:(double)scale iconBase:(UIImage *)base calendar:(id)calendar dayNumberString:(NSString *)dayNumberString dateNameBlock:(id)dateNameBlock dateNameFormatType:(long long)format showGrid:(BOOL)showGrid {
-  base = [UIImage imageWithContentsOfFile:[Neon iconPathForBundleID:@"com.apple.mobilecal"]] ? : base;
-  //if (!dayPrefs && !datePrefs)
-  if (!ctx) return;
-  [base drawInRect:CGRectMake(0, 0, imageSize.width, imageSize.height)];
+- (ISImage *)imageForImageDescriptor:(ISImageDescriptor *)descriptor {
+  CGSize imageSize = descriptor.size;
+  UIGraphicsBeginImageContextWithOptions(imageSize, NO, [UIScreen mainScreen].scale);
+  CGContextRef ctx = UIGraphicsGetCurrentContext();
+  if (descriptor.shouldApplyMask) CGContextClipToMask(ctx, CGRectMake(0, 0, imageSize.width, imageSize.height), [%c(Neon) getMaskImage].CGImage);
+
+  UIImage *base = [UIImage imageWithContentsOfFile:[%c(Neon) iconPathForBundleID:@"com.apple.mobilecal"]];
+  if (base) [base drawInRect:CGRectMake(0, 0, imageSize.height, imageSize.width)];
+  else {
+    [[UIColor whiteColor] setFill];
+    UIRectFill(CGRectMake(0, 0, imageSize.height, imageSize.width));
+  }
 
 	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
 	[dateFormatter setDateStyle:NSDateFormatterNoStyle];
@@ -76,15 +92,25 @@ id dayObject(NSString *key) {
   	CGContextSetShadowWithColor(ctx, CGSizeMake([dayObject(@"ShadowXoffset") floatValue] * proportion, [dayObject(@"ShadowXoffset") floatValue] * proportion), [dayObject(@"ShadowBlurRadius") floatValue], [(UIColor *)dayObject(@"ShadowColor") CGColor]);
   	CGContextSetAlpha(ctx, CGColorGetAlpha([(UIColor *)dayObject(@"TextColor") CGColor]));
   	[dayOfWeek drawAtPoint:CGPointMake([dayObject(@"TextXoffset") floatValue] * proportion + ((imageSize.width - size.width) / 2.0f), [dayObject(@"TextYoffset") floatValue] * proportion) withAttributes:@{NSFontAttributeName:dayOfWeekFont, NSForegroundColorAttributeName:dayTextColor}];
-  }}
+  }
+
+  CGImageRef finalImage = CGBitmapContextCreateImage(ctx);
+  UIGraphicsEndImageContext();
+  ISImage *image = [[%c(ISImage) alloc] initWithCGImage:finalImage scale:[UIScreen mainScreen].scale];
+  CGImageRelease(finalImage);
+  return image;
+}
 
 %end
 
 %end
 
 %ctor {
-  if (![Neon prefs]) return;
-  for (NSString *theme in [[Neon prefs] objectForKey:@"enabledThemes"]) {
+  if (!%c(Neon)) dlopen("/Library/MobileSubstrate/DynamicLibraries/NeonEngine.dylib", RTLD_LAZY);
+  if (!%c(Neon)) return;
+
+  if (![%c(Neon) prefs]) return;
+  for (NSString *theme in [[%c(Neon) prefs] objectForKey:@"enabledThemes"]) {
 		NSString *path = [NSString stringWithFormat:@"/Library/Themes/%@/Info.plist", theme];
 		if (![[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil]) continue;
 		NSDictionary *themeDict = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:path] error:nil];

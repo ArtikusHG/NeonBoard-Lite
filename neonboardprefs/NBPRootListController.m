@@ -15,12 +15,29 @@
 }
 
 - (void)respring {
-    [[NSFileManager defaultManager] removeItemAtPath:@"/var/containers/Shared/SystemGroup/systemgroup.com.apple.lsd.iconscache/Library/Caches/com.apple.IconsCache" error:nil];
+  [[NSFileManager defaultManager] removeItemAtPath:@"/var/containers/Shared/SystemGroup/systemgroup.com.apple.lsd.iconscache/Library/Caches/com.apple.IconsCache" error:nil];
 	pid_t pid;
 	int status;
-	const char *argv[] = {"killall", "SpringBoard", NULL};
+	const char *argv[] = {"killall", "-KILL", "iconservicesagent", NULL};
 	posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)argv, NULL);
 	waitpid(pid, &status, WEXITED);
+
+	pid_t pid1;
+	int status1;
+	const char *argv1[] = {"killall", "-9", "iconservicesagent", "SpringBoard", NULL};
+	posix_spawn(&pid1, "/usr/bin/killall", NULL, NULL, (char* const*)argv1, NULL);
+	waitpid(pid1, &status1, WEXITED);
+}
+
+- (void)setPreferenceValue:(id)value specifier:(PSSpecifier *)specifier {
+	NSMutableDictionary *dict = [[NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil] mutableCopy] ? : [NSMutableDictionary dictionary];
+	[dict setObject:value forKey:[specifier propertyForKey:@"key"]];
+	[dict writeToURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil];
+}
+
+- (id)readPreferenceValue:(PSSpecifier*)specifier {
+	NSDictionary *dict = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil] ? : [NSMutableDictionary dictionary];
+	return dict[[specifier propertyForKey:@"key"]] ? : NO;
 }
 
 @end
