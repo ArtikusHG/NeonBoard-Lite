@@ -28,7 +28,7 @@ CFPropertyListRef MGCopyAnswer(CFStringRef property);
 + (NSString *)deviceScaleString {
   int scale = [[Neon deviceScale] intValue];
   if (scale == 2) return @"@2x";
-  else if (scale == 3) return @"3x";
+  else if (scale == 3) return @"@3x";
   return @"";
 }
 
