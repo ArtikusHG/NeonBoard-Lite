@@ -1,5 +1,6 @@
 #import <spawn.h>
 #import <signal.h>
+#include <Preferences/PSSpecifier.h>
 #include "NBPRootListController.h"
 
 #define PLIST_PATH_Settings "/var/mobile/Library/Preferences/com.artikus.neonboardprefs.plist"

@@ -43,6 +43,7 @@ CFPropertyListRef MGCopyAnswer(CFStringRef property);
   if (!name || !basePath) return nil;
 	NSMutableArray *potentialFilenames = [[NSMutableArray alloc] init];
   [potentialFilenames addObject:[name stringByAppendingString:@"-large.png"]];
+  [potentialFilenames addObject:[name stringByAppendingString:@".png"]];
   NSString *device = ([self deviceIsIpad]) ? @"~ipad" : @"~iphone";
   NSString *scale = [Neon deviceScaleString];
   [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@.png", name, scale]];
