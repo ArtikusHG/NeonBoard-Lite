@@ -110,15 +110,28 @@ id dayObject(NSString *key) {
   if (!%c(Neon)) return;
 
   if (![%c(Neon) prefs]) return;
-  for (NSString *theme in [[%c(Neon) prefs] objectForKey:@"enabledThemes"]) {
-		NSString *path = [NSString stringWithFormat:@"/Library/Themes/%@/Info.plist", theme];
-		if (![[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil]) continue;
-		NSDictionary *themeDict = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:path] error:nil];
-		if (!themeDict) continue;
-		dateSettings = [themeDict[@"CalendarIconDateSettings"] mutableCopy];
-		daySettings = [themeDict[@"CalendarIconDaySettings"] mutableCopy];
-		if (!dateSettings && !daySettings) continue;
-	}
+  NSString *overrideTheme = [[%c(Neon) overrideThemes] objectForKey:@"com.apple.mobilecal"];
+  if (overrideTheme) {
+    NSString *path = [NSString stringWithFormat:@"/Library/Themes/%@/Info.plist", overrideTheme];
+		if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil]) {
+      NSDictionary *themeDict = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:path] error:nil];
+      if (themeDict) {
+    		dateSettings = [themeDict[@"CalendarIconDateSettings"] mutableCopy];
+    		daySettings = [themeDict[@"CalendarIconDaySettings"] mutableCopy];
+      }
+    }
+  }
+  if (!dateSettings && !daySettings) {
+    for (NSString *theme in [[%c(Neon) prefs] objectForKey:@"enabledThemes"]) {
+  		NSString *path = [NSString stringWithFormat:@"/Library/Themes/%@/Info.plist", theme];
+  		if (![[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil]) continue;
+  		NSDictionary *themeDict = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:path] error:nil];
+  		if (!themeDict) continue;
+  		dateSettings = [themeDict[@"CalendarIconDateSettings"] mutableCopy];
+  		daySettings = [themeDict[@"CalendarIconDaySettings"] mutableCopy];
+  		if (!dateSettings && !daySettings) continue;
+  	}
+  }
 
 	defaultDateSettings = @{
 		@"FontSize" : @39.5f,

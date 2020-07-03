@@ -1,13 +1,9 @@
 #include "../Neon.h"
 #include <sys/utsname.h>
 
-@interface UIImage (Private)
-+ (UIImage *)imageNamed:(NSString *)name inBundle:(NSBundle *)bundle;
-@end
-
 NSArray *themes;
 NSDictionary *prefs;
-NSCache *pathsCache;
+NSDictionary *overrideThemes;
 
 @implementation Neon
 
@@ -17,6 +13,10 @@ NSCache *pathsCache;
 
 + (NSDictionary *)prefs {
   return prefs;
+}
+
++ (NSDictionary *)overrideThemes {
+  return overrideThemes;
 }
 
 CFPropertyListRef MGCopyAnswer(CFStringRef property);
@@ -67,20 +67,20 @@ CFPropertyListRef MGCopyAnswer(CFStringRef property);
 
 + (NSString *)iconPathForBundleID:(NSString *)bundleID {
   if (!bundleID) return nil;
-  NSString *cachedPath = [pathsCache objectForKey:bundleID];
-  if (cachedPath) return ([cachedPath isEqualToString:@""]) ? nil : cachedPath;
+  if ([overrideThemes objectForKey:bundleID]) {
+    NSString *path = [self iconPathForBundleID:bundleID fromTheme:overrideThemes[bundleID]];
+    if (path) return path;
+  }
   for (NSString *theme in themes) {
     NSString *path = [Neon iconPathForBundleID:bundleID fromTheme:theme];
     if (path && [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil]) {
-      [pathsCache setObject:path forKey:bundleID];
       return path;
     }
   }
-  [pathsCache setObject:@"" forKey:bundleID];
   return nil;
 }
 
-// Usage: iconPathForBundleID:@"com.saurik.Cydia" fromTheme:@"Viola"
+// Usage: iconPathForBundleID:@"com.saurik.Cydia" fromTheme:@"Viola.theme"
 + (NSString *)iconPathForBundleID:(NSString *)bundleID fromTheme:(NSString *)theme {
   // Protection against dumbasses (me)
   if (!bundleID || !theme) return nil;
@@ -110,12 +110,14 @@ UIImage *maskImage;
 %ctor {
   prefs = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:@"/var/mobile/Library/Preferences/com.artikus.neonboardprefs.plist"] error:nil];
   if (!prefs) return;
-  pathsCache = [NSCache new];
   NSMutableArray *mutableThemes = [[prefs valueForKey:@"enabledThemes"] mutableCopy] ? : [NSMutableArray new];
   for (int i = mutableThemes.count - 1; i >= 0; i--) {
     NSString *path = [NSString stringWithFormat:@"/Library/Themes/%@/IconBundles", [mutableThemes objectAtIndex:i]];
     NSString *path2 = [NSString stringWithFormat:@"/Library/Themes/%@/Bundles/com.apple.springboard", [mutableThemes objectAtIndex:i]];
     if (![[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil] && ![[NSFileManager defaultManager] fileExistsAtPath:path2 isDirectory:nil]) [mutableThemes removeObjectAtIndex:i];
   }
-  if (mutableThemes.count > 0) themes = [mutableThemes copy];
+  if (mutableThemes.count > 0) {
+    themes = [mutableThemes copy];
+    overrideThemes = [prefs objectForKey:@"overrideThemes"];
+  }
 }

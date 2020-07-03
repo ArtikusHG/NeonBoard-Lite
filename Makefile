@@ -9,7 +9,7 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = neonboardlite
 
-neonboardlite_FILES = Calendar.x Clock.xm Customizations.x UIColor+CSSColors.m
+neonboardlite_FILES = Calendar.x Clock.xm Customizations.x UIColor+CSSColors.m AltIconPicker.xm
 neonboardlite_FRAMEWORKS = UIKit
 neonboardlite_CFLAGS = -fobjc-arc
 
