@@ -122,16 +122,14 @@ id dayObject(NSString *key) {
     		daySettings = [themeDict[@"CalendarIconDaySettings"] mutableCopy];
       }
     }
-  }
-  if (!dateSettings && !daySettings) {
+  } else {
     for (NSString *theme in [[%c(Neon) prefs] objectForKey:@"enabledThemes"]) {
   		NSString *path = [NSString stringWithFormat:@"/Library/Themes/%@/Info.plist", theme];
-  		if (![[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil]) continue;
-  		NSDictionary *themeDict = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:path] error:nil];
-  		if (!themeDict) continue;
-  		dateSettings = [themeDict[@"CalendarIconDateSettings"] mutableCopy];
+      if (![[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil]) continue;
+      NSDictionary *themeDict = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:path] error:nil];
+      dateSettings = [themeDict[@"CalendarIconDateSettings"] mutableCopy];
   		daySettings = [themeDict[@"CalendarIconDaySettings"] mutableCopy];
-  		if (!dateSettings && !daySettings) continue;
+      if (dateSettings || daySettings) break;
   	}
   }
 
