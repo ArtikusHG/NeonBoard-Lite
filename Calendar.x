@@ -112,6 +112,8 @@ id dayObject(NSString *key) {
   if (![%c(Neon) prefs]) return;
   NSString *overrideTheme = [[%c(Neon) overrideThemes] objectForKey:@"com.apple.mobilecal"];
   if (overrideTheme) {
+    if ([overrideTheme isEqualToString:@"none"]) return;
+
     NSString *path = [NSString stringWithFormat:@"/Library/Themes/%@/Info.plist", overrideTheme];
 		if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil]) {
       NSDictionary *themeDict = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:path] error:nil];

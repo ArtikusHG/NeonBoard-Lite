@@ -3,6 +3,16 @@
 #import <signal.h>
 #define PLIST_PATH_Settings "/var/mobile/Library/Preferences/com.artikus.neonboardprefs.plist"
 
+@interface LSApplicationProxy : NSObject
+@property (nonatomic, readonly) NSString *applicationIdentifier;
+@property (nonatomic, readonly) NSURL *bundleURL;
+@property (nonatomic, readonly) NSDictionary *iconsDictionary;
+@end
+
+@interface LSBundleProxy
++ (LSApplicationProxy *)bundleProxyForIdentifier:(NSString *)identifier;
+@end
+
 // picker
 
 @interface AltIconPickerController : UIViewController <UITableViewDelegate, UITableViewDataSource>
@@ -23,14 +33,31 @@
   NSMutableArray *mutableThemes = [NSMutableArray new];
   NSMutableArray *mutableThemeNames = [NSMutableArray new];
   NSMutableArray *mutableIcons = [NSMutableArray new];
+
+  // get unthemed icon
+  UIImage *stockIcon;
+  LSApplicationProxy *proxy = [%c(LSBundleProxy) bundleProxyForIdentifier:bundleID];
+  if (proxy) {
+    NSArray *icons = [[proxy.iconsDictionary objectForKey:@"CFBundlePrimaryIcon"] objectForKey:@"CFBundleIconFiles"];
+    NSBundle *bundle = [NSBundle bundleWithURL:proxy.bundleURL];
+    stockIcon = [UIImage imageNamed:[icons lastObject] inBundle:bundle];
+  } else stockIcon = [UIImage imageNamed:@"DefaultIcon-60" inBundle:[NSBundle bundleWithIdentifier:@"com.apple.mobileicons.framework"]];
+  UIGraphicsBeginImageContextWithOptions(CGSizeMake(60, 60), NO, [UIScreen mainScreen].scale);
+  CGContextClipToMask(UIGraphicsGetCurrentContext(), CGRectMake(0, 0, 60, 60), [%c(Neon) getMaskImage].CGImage);
+  [stockIcon drawInRect:CGRectMake(0, 0, 60, 60)];
+  stockIcon = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  [mutableIcons addObject:stockIcon];
+  [mutableThemeNames addObject:@"Unthemed / stock"];
+  [mutableThemes addObject:@"none"];
+
   for (NSString *theme in [[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/Library/Themes/" error:nil]) {
     NSString *path = [%c(Neon) iconPathForBundleID:bundleID fromTheme:theme];
     if (path) {
       [mutableThemes addObject:theme];
       NSString *themeName = theme;
       if ([[themeName substringFromIndex:themeName.length - 6] isEqualToString:@".theme"]) themeName = [themeName substringToIndex:themeName.length - 6];
-      [mutableThemeNames addObject:theme];
-      [path writeToFile:@"/var/mobile/a" atomically:YES encoding:NSUTF8StringEncoding error:nil];
+      [mutableThemeNames addObject:themeName];
       UIImage *icon = [UIImage imageWithContentsOfFile:path] ? : [UIImage imageNamed:@"DefaultIcon-60" inBundle:[NSBundle bundleWithIdentifier:@"com.apple.mobileicons.framework"]];
       UIGraphicsBeginImageContextWithOptions(CGSizeMake(60, 60), NO, [UIScreen mainScreen].scale);
       CGContextClipToMask(UIGraphicsGetCurrentContext(), CGRectMake(0, 0, 60, 60), [%c(Neon) getMaskImage].CGImage);
@@ -77,7 +104,7 @@
   UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Set icon?" message:@"The icon you've selected will be used instead of the default one" preferredStyle:UIAlertControllerStyleAlert];
   UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
   UIAlertAction *setAction = [UIAlertAction actionWithTitle:@"Set" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-    [self setOverrideTheme:[self.themeNames objectAtIndex:indexPath.row]];
+    [self setOverrideTheme:[self.themes objectAtIndex:indexPath.row]];
   }];
   [alert addAction:cancelAction];
   [alert addAction:setAction];

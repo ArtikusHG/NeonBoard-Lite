@@ -41,4 +41,17 @@
 	return dict[[specifier propertyForKey:@"key"]] ? : NO;
 }
 
+- (void)resetOverrides {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Really reset overrides?" message:@"This action cannot be undone!" preferredStyle:UIAlertControllerStyleAlert];
+  UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+  UIAlertAction *resetAction = [UIAlertAction actionWithTitle:@"Reset" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+    NSMutableDictionary *dict = [[NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil] mutableCopy] ? : [NSMutableDictionary dictionary];
+	[dict removeObjectForKey:@"overrideThemes"];
+	[dict writeToURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil];
+  }];
+  [alert addAction:cancelAction];
+  [alert addAction:resetAction];
+  [self presentViewController:alert animated:YES completion:nil];
+}
+
 @end

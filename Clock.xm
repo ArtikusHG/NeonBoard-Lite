@@ -5,6 +5,7 @@
 @end
 
 NSArray *themes;
+NSString *overrideTheme;
 
 %group Themes
 
@@ -23,11 +24,16 @@ NSArray *themes;
   }];
   for (NSString *key in [files allKeys]) {
     UIImage *image;
-    for (NSString *theme in themes) {
-      NSString *path = [%c(Neon) fullPathForImageNamed:key atPath:[NSString stringWithFormat:@"/Library/Themes/%@/Bundles/com.apple.springboard/", theme]];
-      if (path) {
-        image = [UIImage imageWithContentsOfFile:path];
-        break;
+    if (overrideTheme) {
+      NSString *path = [%c(Neon) fullPathForImageNamed:key atPath:[NSString stringWithFormat:@"/Library/Themes/%@/Bundles/com.apple.springboard/", overrideTheme]];
+      if (path) image = [UIImage imageWithContentsOfFile:path];
+    } else {
+      for (NSString *theme in themes) {
+        NSString *path = [%c(Neon) fullPathForImageNamed:key atPath:[NSString stringWithFormat:@"/Library/Themes/%@/Bundles/com.apple.springboard/", theme]];
+        if (path) {
+          image = [UIImage imageWithContentsOfFile:path];
+          break;
+        }
       }
     }
     if (!image) continue;
@@ -41,11 +47,16 @@ NSArray *themes;
 
 UIImage *customClockBackground(CGSize size, BOOL masked) {
   UIImage *custom;
-  for (NSString *theme in themes) {
-    NSString *path = [%c(Neon) fullPathForImageNamed:@"ClockIconBackgroundSquare" atPath:[NSString stringWithFormat:@"/Library/Themes/%@/Bundles/com.apple.springboard/", theme]];
-    if (path) {
-      custom = [UIImage imageWithContentsOfFile:path];
-      break;
+  if (overrideTheme) {
+    NSString *path = [%c(Neon) fullPathForImageNamed:@"ClockIconBackgroundSquare" atPath:[NSString stringWithFormat:@"/Library/Themes/%@/Bundles/com.apple.springboard/", overrideTheme]];
+    if (path) custom = [UIImage imageWithContentsOfFile:path];
+  } else {
+    for (NSString *theme in themes) {
+      NSString *path = [%c(Neon) fullPathForImageNamed:@"ClockIconBackgroundSquare" atPath:[NSString stringWithFormat:@"/Library/Themes/%@/Bundles/com.apple.springboard/", theme]];
+      if (path) {
+        custom = [UIImage imageWithContentsOfFile:path];
+        break;
+      }
     }
   }
   if (!custom) return nil;
@@ -75,7 +86,10 @@ UIImage *customClockBackground(CGSize size, BOOL masked) {
   if (!%c(Neon)) dlopen("/Library/MobileSubstrate/DynamicLibraries/NeonEngine.dylib", RTLD_LAZY);
   if (!%c(Neon)) return;
 
-	if ([%c(Neon) themes] && [%c(Neon) themes].count > 0) {
+  overrideTheme = [[%c(Neon) overrideThemes] objectForKey:@"com.apple.mobiletimer"];
+  if (overrideTheme && [overrideTheme isEqualToString:@"none"]) return;
+
+  if ([%c(Neon) themes] && [%c(Neon) themes].count > 0) {
     themes = [%c(Neon) themes];
     %init(Themes);
   }

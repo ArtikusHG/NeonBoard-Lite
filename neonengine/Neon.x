@@ -68,6 +68,7 @@ CFPropertyListRef MGCopyAnswer(CFStringRef property);
 + (NSString *)iconPathForBundleID:(NSString *)bundleID {
   if (!bundleID) return nil;
   if ([overrideThemes objectForKey:bundleID]) {
+  if ([overrideThemes[bundleID] isEqualToString:@"none"]) return nil;
     NSString *path = [self iconPathForBundleID:bundleID fromTheme:overrideThemes[bundleID]];
     if (path) return path;
   }
