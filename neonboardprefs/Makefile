@@ -2,18 +2,11 @@ include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = neonboardprefs
 
-#DEBUG = 0
-#FINALPACKAGE = 1
-
-#ARCHS = arm64 arm64e
-ARCHS = arm64
-TARGET := iphone:clang:13.5:13.0
-
-neonboardprefs_FILES = NBPRootListController.m CustomizationController.m ThemeListViewController.m
+neonboardprefs_FILES = NBPRootListController.m CustomizationController.m ThemeListViewController.m OverridesController.m SelectAppController.m SelectThemeController.m SelectIconController.m
 neonboardprefs_INSTALL_PATH = /Library/PreferenceBundles
 neonboardprefs_FRAMEWORKS = UIKit
-neonboardprefs_PRIVATE_FRAMEWORKS = Preferences
-neonboardprefs_CFLAGS = -fobjc-arc
+neonboardprefs_PRIVATE_FRAMEWORKS = Preferences AppSupport
+neonboardprefs_CFLAGS = -fobjc-arc -Wall
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 

@@ -4,7 +4,7 @@
 @property (nonatomic, copy) NSString *applicationIdentifier;
 @end
 
-%group Themes
+%group Themes13
 
 %hook _LSBoundIconInfo
 
@@ -21,58 +21,79 @@
 
 %end
 
-@interface LSBundleProxy : NSObject
-@end
+%end
 
-// dONT mind that beta code lmaoooo
-// if someone knows why tf does it crash even when returning pure %orig tell me plz lol
+%group Themes_1112
 
-//%hook LSBundleProxy
+%hook LSApplicationProxy
 
-/*- (id)_initWithBundleUnit:(unsigned)bundleUnit context:(id)context bundleType:(unsigned long long)bundleType bundleID:(NSString *)bundleID localizedName:(NSString *)localizedName bundleContainerURL:(NSURL *)bundleContainerURL dataContainerURL:(NSURL *)dataContainerURL resourcesDirectoryURL:(NSURL *)resourcesDirectoryURL iconsDictionary:(NSDictionary *)iconsDictionary iconFileNames:(NSArray *)iconFileNames version:(id)version {
-  //if (!bundleID) return %orig;
-  //[%c(Neon) iconPathForBundleID:bundleID];
-  //if (path) {
-    //NSURL *newResourcesDirectoryURL = [NSURL fileURLWithPath:path.stringByDeletingLastPathComponent];
-    //iconsDictionary = @{ @"CFBundlePrimaryIcon" : @{ @"CFBundleIconFiles" : @[path.lastPathComponent] }, @"CFBundleIconName" : path.lastPathComponent };
-    //return %orig(bundleUnit, context, bundleType, bundleID, localizedName, bundleContainerURL, dataContainerURL, newResourcesDirectoryURL, iconsDictionary, iconFileNames, version);
-  //}
-  return %orig;
-}*/
-
-//%end
-
-/*%hook LSResourceProxy
-
-// btw who tf in apple thought a method name that's 560 characters long is a good idea
-// 11
-- (instancetype)_initWithLocalizedName:(NSString *)localizedName boundApplicationIdentifier:(NSString *)boundApplicationIdentifier boundContainerURL:(NSURL *)boundContainerURL dataContainerURL:(NSURL *)dataContainerURL boundResourcesDirectoryURL:(NSURL *)boundResourcesDirectoryURL boundIconsDictionary:(NSDictionary *)boundIconsDictionary boundIconCacheKey:(NSString *)boundIconCacheKey boundIconFileNames:(NSArray *)boundIconFileNames typeIconOwner:(id)typeIconOwner boundIconIsPrerendered:(BOOL)boundIconIsPrerendered boundIconIsBadge:(BOOL)boundIconIsBadge {
-  NSString *path = [%c(Neon) iconPathForBundleID:boundApplicationIdentifier];
-  if (path) {
-    boundResourcesDirectoryURL = [NSURL fileURLWithPath:path.stringByDeletingLastPathComponent];
-    boundIconsDictionary = @{ @"CFBundlePrimaryIcon" : @{ @"CFBundleIconFiles" : @[path.lastPathComponent] }, @"CFBundleIconName" : path.lastPathComponent };
-  }
-  return %orig;
+// ios 11 & 12
+- (NSURL *)_boundResourcesDirectoryURL {
+  NSString *path = [%c(Neon) iconPathForBundleID:self._boundApplicationIdentifier];
+  return (path) ? [NSURL fileURLWithPath:path.stringByDeletingLastPathComponent] : %orig;
 }
-// 8 - 10
-//- (instancetype)_initWithLocalizedName:(id)arg1 boundApplicationIdentifier:(id)arg2 boundContainerURL:(id)arg3 dataContainerURL:(id)arg4 boundResourcesDirectoryURL:(id)arg5 boundIconsDictionary:(id)arg6 boundIconCacheKey:(id)arg7 boundIconFileNames:(id)arg8 typeOwner:(id)arg9 boundIconIsPrerendered:(BOOL)arg10 boundIconIsBadge:(BOOL)arg11 ;
 
-%end*/
+- (NSDictionary *)iconsDictionary {
+  NSString *path = [%c(Neon) iconPathForBundleID:self._boundApplicationIdentifier].lastPathComponent;
+	return (path) ? @{ @"CFBundlePrimaryIcon" : @{ @"CFBundleIconFiles" : @[path] } } : %orig;
+}
+
+%end
+
+%end
+
+%group ThemesOlder
+
+%hook LSApplicationProxy
+
+// ios 10
+- (NSURL *)boundResourcesDirectoryURL {
+  //[[NSString stringWithFormat:@"%@\n%@", [NSString stringWithContentsOfFile:@"/var/mobile/a" encoding:NSUTF8StringEncoding error:nil], self.boundApplicationIdentifier] writeToFile:@"/var/mobile/a" atomically:YES encoding:NSUTF8StringEncoding error:nil];
+  NSString *path = [%c(Neon) iconPathForBundleID:self.boundApplicationIdentifier];
+  return (path) ? [NSURL fileURLWithPath:path.stringByDeletingLastPathComponent] : %orig;
+}
+
+- (NSURL *)resourcesDirectoryURL {
+  NSString *path = [%c(Neon) iconPathForBundleID:self.boundApplicationIdentifier];
+  return (path) ? [NSURL fileURLWithPath:path.stringByDeletingLastPathComponent] : %orig;
+}
+
+// is actually _LSLazyPropertyList of same format but who cares lol it works
+- (NSDictionary *)iconsDictionary {
+  NSString *path = [%c(Neon) iconPathForBundleID:self.boundApplicationIdentifier].lastPathComponent;
+	return (path) ? @{ @"CFBundlePrimaryIcon" : @{ @"CFBundleIconFiles" : @[path] }, @"UIPrerenderedIcon" : @YES } : %orig;
+}
+
+- (NSDictionary *)boundIconsDictionary {
+  NSString *path = [%c(Neon) iconPathForBundleID:self.boundApplicationIdentifier].lastPathComponent;
+	return (path) ? @{ @"CFBundlePrimaryIcon" : @{ @"CFBundleIconFiles" : @[path] }, @"UIPrerenderedIcon" : @YES } : %orig;
+}
+
+%end
 
 %end
 
 %group GlyphMode
 
 // Remove black bg
+// iOS 13+
 %hook ISIconCacheClient
 - (NSData *)iconBitmapDataWithResourceLocator:(id)locator variant:(int)variant options:(int)options {
   return %orig(locator, variant, 8);
 }
 %end
 
+// iOS 10.3 - 12
+%hook LSApplicationProxy
+
+- (NSData *)iconDataForVariant:(int)variant preferredIconName:(NSString *)iconName withOptions:(int)options {
+  return %orig(variant, iconName, 8);
+}
+
+%end
+
 // Remove table & app switcher icon outline
 CGImageSourceRef CGImageSourceCreateWithURL(CFURLRef url, CFDictionaryRef options);
-
 %hookf(CGImageSourceRef, CGImageSourceCreateWithURL, CFURLRef url, NSDictionary *options) {
   if ([[(__bridge NSURL *)url path] rangeOfString:@"TableIconOutline"].location != NSNotFound) return nil;
   return %orig;
@@ -80,12 +101,47 @@ CGImageSourceRef CGImageSourceCreateWithURL(CFURLRef url, CFDictionaryRef option
 
 %end
 
+%group GlyphModeLegacy
+// iOS 7 - ????? maybe theres a better way on like 9 or at least <10.3 versions of 10?
+%hook UIImage
+
++ (UIImage *)_iconForResourceProxy:(LSApplicationProxy *)proxy variant:(int)variant variantsScale:(CGFloat)scale {
+  if (![%c(Neon) iconPathForBundleID:proxy.boundApplicationIdentifier]) return %orig;
+  UIImage *icon = %orig(proxy, 25, scale);
+  CGSize size = %orig.size;
+  UIGraphicsBeginImageContextWithOptions(size, NO, scale);
+  [icon drawInRect:CGRectMake(0, 0, size.width, size.height)];
+  UIImage *finalImage = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  return finalImage;
+}
+
+%end
+
+%end
+
+// iOS 7 - 9 are weird; the unmasked image remains unthemed somehow
+%group UnmaskedFixup
+%hook SBIconImageCrossfadeView
+- (void)setMasksCorners:(BOOL)masksCorners {
+  %orig(NO);
+}
+%end
+%end
+
 %ctor {
   if (!%c(Neon)) dlopen("/Library/MobileSubstrate/DynamicLibraries/NeonEngine.dylib", RTLD_LAZY);
   if (!%c(Neon)) return;
 
   if ([%c(Neon) themes] && [%c(Neon) themes].count > 0) {
-    %init(Themes);
-    if ([[%c(Neon) prefs] valueForKey:@"kGlyphMode"] && [[[%c(Neon) prefs] valueForKey:@"kGlyphMode"] boolValue]) %init(GlyphMode);
+    if (kCFCoreFoundationVersionNumber >= 1665.15) %init(Themes13);
+    else if (kCFCoreFoundationVersionNumber >= 1443.00) %init(Themes_1112)
+    else %init(ThemesOlder);
+    if (kCFCoreFoundationVersionNumber < 1348.00) %init(UnmaskedFixup);
+    if ([[%c(Neon) prefs] valueForKey:@"kGlyphMode"] && [[[%c(Neon) prefs] valueForKey:@"kGlyphMode"] boolValue]) {
+      %init(GlyphMode);
+      // also check 3x (afaik from 9.x there exist super retina devices yes)
+      if (kCFCoreFoundationVersionNumber <= 1348.22) %init(GlyphModeLegacy);
+    }
   }
 }

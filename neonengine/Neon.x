@@ -25,13 +25,6 @@ CFPropertyListRef MGCopyAnswer(CFStringRef property);
   return (__bridge NSNumber *)MGCopyAnswer(CFSTR("main-screen-scale"));
 }
 
-+ (NSString *)deviceScaleString {
-  int scale = [[Neon deviceScale] intValue];
-  if (scale == 2) return @"@2x";
-  else if (scale == 3) return @"@3x";
-  return @"";
-}
-
 + (BOOL)deviceIsIpad {
   struct utsname systemInfo;
   uname(&systemInfo);
@@ -41,23 +34,33 @@ CFPropertyListRef MGCopyAnswer(CFStringRef property);
 // Usage: fullPathForImageNamed:@"SBBadgeBG" atPath:@"/Library/Themes/Viola Badges.theme/Bundles/com.apple.springboard/" (last symbol of basePath should be a slash (/)!)
 + (NSString *)fullPathForImageNamed:(NSString *)name atPath:(NSString *)basePath {
   if (!name || !basePath) return nil;
-	NSMutableArray *potentialFilenames = [[NSMutableArray alloc] init];
+  NSMutableArray *potentialFilenames = [NSMutableArray new];
   [potentialFilenames addObject:[name stringByAppendingString:@"-large.png"]];
-  [potentialFilenames addObject:[name stringByAppendingString:@".png"]];
   NSString *device = ([self deviceIsIpad]) ? @"~ipad" : @"~iphone";
-  NSString *scale = [Neon deviceScaleString];
-  [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@.png", name, scale]];
-  [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@.png", name, device]];
-  [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@%@.png", name, device, scale]];
-  [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@%@.png", name, scale, device]];
-  // THEMERS STUPID AND FORGET TO ADD 2X IMAGES SO WE GOTTA PROBABLY RESIZE 3X EVEN THO THATS STUPID AS SHIT!!!!!
-  if ([[Neon deviceScale] intValue] == 2) {
-    scale = @"@3x";
-    [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@.png", name, scale]];
+  NSInteger scale = [[self deviceScale] integerValue];
+  // this is a mess, too. BUT:
+  // first, it puts the filenames for the actual device's scale (lets assume, 2x).
+  // then - for the LARGER scales (e.g. if we assume it's 2x, it will add 3x)
+  // and lastly - for the SMALLER ones (e.g. if we assume it's 2x, it will add nothingx)
+  // this is required because some themes provide, for example, only SBClockIconBackgroundSquare@2x..... but it's 300 x 300.
+  // this is absolutely awful, but we gotta deal with that, so i had to make up this weird workaround with scales :/
+  for (int i = scale - 1; i < 3; i++) {
+    NSString *scaleString = [@[@"", @"@2x", @"@3x"] objectAtIndex:i];
+    [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@%@.png", name, device, scaleString]];
+    [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@%@.png", name, scaleString, device]];
+    [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@.png", name, scaleString]];
     [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@.png", name, device]];
-    [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@%@.png", name, device, scale]];
-    [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@%@.png", name, scale, device]];
   }
+  if (scale >= 2) {
+    for (int i = scale - 2; i >= 0; i--) {
+      NSString *scaleString = [@[@"", @"@2x", @"@3x"] objectAtIndex:i];
+      [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@%@.png", name, device, scaleString]];
+      [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@%@.png", name, scaleString, device]];
+      [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@.png", name, scaleString]];
+      [potentialFilenames addObject:[NSString stringWithFormat:@"%@%@.png", name, device]];
+    }
+  }
+  [potentialFilenames addObject:[name stringByAppendingString:@".png"]]; // yes, this format somehow exists
   for (NSString *filename in potentialFilenames) {
     NSString *fullFilename = [basePath stringByAppendingString:filename];
     if ([[NSFileManager defaultManager] fileExistsAtPath:fullFilename isDirectory:nil]) return fullFilename;
@@ -67,9 +70,20 @@ CFPropertyListRef MGCopyAnswer(CFStringRef property);
 
 + (NSString *)iconPathForBundleID:(NSString *)bundleID {
   if (!bundleID) return nil;
-  if ([overrideThemes objectForKey:bundleID]) {
-  if ([overrideThemes[bundleID] isEqualToString:@"none"]) return nil;
-    NSString *path = [self iconPathForBundleID:bundleID fromTheme:overrideThemes[bundleID]];
+  if ([bundleID isEqualToString:@"com.apple.mobiletimer"]) {
+    if ([[NSFileManager defaultManager] fileExistsAtPath:@"/var/mobile/Media/NeonStaticClockIcon.png"]) {
+      return @"/var/mobile/Media/NeonStaticClockIcon.png";
+    }
+  }
+  NSString *overrideTheme = [overrideThemes objectForKey:bundleID];
+  if (overrideTheme) {
+    if ([overrideTheme isEqualToString:@"none"]) return nil;
+    if ([overrideTheme rangeOfString:@"/"].location != NSNotFound) {
+      NSString *theme = [overrideTheme pathComponents][0];
+      NSString *app = [overrideTheme pathComponents][1];
+      return [self iconPathForBundleID:app fromTheme:theme];
+    }
+    NSString *path = [self iconPathForBundleID:bundleID fromTheme:overrideTheme];
     if (path) return path;
   }
   for (NSString *theme in themes) {
@@ -106,19 +120,26 @@ UIImage *maskImage;
   return image;
 }
 
-@end
-
-%ctor {
-  prefs = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:@"/var/mobile/Library/Preferences/com.artikus.neonboardprefs.plist"] error:nil];
++ (void)loadPrefs {
+  if (@available(iOS 11, *)) prefs = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:@"/var/mobile/Library/Preferences/com.artikus.neonboardprefs.plist"] error:nil];
+  else prefs = [NSDictionary dictionaryWithContentsOfFile:@"/var/mobile/Library/Preferences/com.artikus.neonboardprefs.plist"];
   if (!prefs) return;
+
   NSMutableArray *mutableThemes = [[prefs valueForKey:@"enabledThemes"] mutableCopy] ? : [NSMutableArray new];
   for (int i = mutableThemes.count - 1; i >= 0; i--) {
     NSString *path = [NSString stringWithFormat:@"/Library/Themes/%@/IconBundles", [mutableThemes objectAtIndex:i]];
     NSString *path2 = [NSString stringWithFormat:@"/Library/Themes/%@/Bundles/com.apple.springboard", [mutableThemes objectAtIndex:i]];
-    if (![[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil] && ![[NSFileManager defaultManager] fileExistsAtPath:path2 isDirectory:nil]) [mutableThemes removeObjectAtIndex:i];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:path] && ![[NSFileManager defaultManager] fileExistsAtPath:path2]) [mutableThemes removeObjectAtIndex:i];
   }
   if (mutableThemes.count > 0) {
     themes = [mutableThemes copy];
     overrideThemes = [prefs objectForKey:@"overrideThemes"];
   }
+}
+
+@end
+
+%ctor {
+  [Neon loadPrefs];
+  if (!prefs || !themes) return;
 }

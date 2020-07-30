@@ -21,7 +21,8 @@
 	allThemes = [allThemes sortedArrayUsingSelector:@selector(compare:)];
 	themes = [allThemes mutableCopy];
 	// grab preferences
-	prefs = [[NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil] mutableCopy] ? : [NSMutableDictionary dictionary];
+	if (@available(iOS 11.0, *)) prefs = [[NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil] mutableCopy] ? : [NSMutableDictionary dictionary];
+	else prefs = [[NSDictionary dictionaryWithContentsOfFile:@PLIST_PATH_Settings] mutableCopy] ? : [NSMutableDictionary dictionary];
 	enabledThemes = [[prefs objectForKey:@"enabledThemes"] mutableCopy] ? : [NSMutableArray new];
 	for (id object in enabledThemes) if ([themes containsObject:object]) [themes removeObject:object];
 	themes = [[themes sortedArrayUsingSelector:@selector(compare:)] mutableCopy];
@@ -49,7 +50,9 @@
 - (id)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 	UITableViewCell *cell = (UITableViewCell *)[tableView dequeueReusableCellWithIdentifier:@"cell"];
 	cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"];
-	cell.textLabel.text = [self titleForCellFromTheme:(indexPath.section == 0) ? [enabledThemes objectAtIndex:indexPath.row] : [themes objectAtIndex:indexPath.row]];
+	NSString *title = (indexPath.section == 0) ? [enabledThemes objectAtIndex:indexPath.row] : [themes objectAtIndex:indexPath.row];
+	if (title.length > 6) title = [self titleForCellFromTheme:title];
+	cell.textLabel.text = title;
 	return cell;
 }
 
@@ -87,7 +90,8 @@
 // thanks Julioverne again
 - (void)writeData {
 	[prefs setObject:enabledThemes forKey:@"enabledThemes"];
-	[prefs writeToURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil];
+	if (@available(iOS 11, *)) [prefs writeToURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil];
+	else [prefs writeToFile:@PLIST_PATH_Settings atomically:YES];
 }
 
 @end

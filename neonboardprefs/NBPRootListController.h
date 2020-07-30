@@ -1,5 +1,4 @@
 #import <Preferences/PSListController.h>
 
-@interface NBPRootListController : PSListController
-
+@interface NBPRootListController : PSListController <UIAlertViewDelegate>
 @end
