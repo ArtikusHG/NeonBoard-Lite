@@ -1,9 +1,9 @@
 Package: com.artikus.neonboard-lite
 Name: NeonBoard Lite
 Depends: mobilesubstrate, preferenceloader, com.rpetrich.rocketbootstrap
-Version: 1.3
+Version: 1.3.1
 Architecture: iphoneos-arm
-Description: A lightweight simple theming engine for iOS 13.
+Description: A lightweight simple theming engine for iOS 7 - 13.
 Maintainer: ArtikusHG
 Author: ArtikusHG
 Section: Tweaks

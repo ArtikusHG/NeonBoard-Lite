@@ -56,5 +56,16 @@
 	<string>com.apple.WebContentFilter.remoteUI.WebContentAnalysisUI</string>
 	<string>com.apple.WebSheet</string>
 	<string>com.apple.iad.iAdOptOut</string>
+	<string>com.apple.appleaccount.AACredentialRecoveryDialog</string>
+	<string>com.apple.FacebookAccountMigrationDialog</string>
+	<string>com.apple.AdSheetPhone</string>
+	<string>com.apple.iosdiagnostics</string>
+	<string>com.apple.uikit.PrintStatus</string>
+	<string>com.apple.quicklook.quicklookd</string>
+	<string>com.apple.SiriViewService</string>
+	<string>com.apple.social.remoteui.SocialUIService</string>
+	<string>com.apple.TencentWeiboAccountMigrationDialog</string>
+	<string>com.apple.TrustMe</string>
+	<string>com.apple.WebViewService</string>
 </array>
 </plist>

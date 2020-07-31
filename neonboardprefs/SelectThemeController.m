@@ -4,9 +4,6 @@
 
 @implementation SelectThemeController
 
-@synthesize searchController;
-@synthesize originalSpecifiers;
-
 UIImage *iconForCellFromIcon(UIImage *icon) {
   UIGraphicsBeginImageContextWithOptions(CGSizeMake(60, 60), NO, [UIScreen mainScreen].scale);
   CGContextClipToMask(UIGraphicsGetCurrentContext(), CGRectMake(0, 0, 60, 60), [NSClassFromString(@"Neon") getMaskImage].CGImage);
@@ -92,36 +89,9 @@ UIImage *iconForCellFromIcon(UIImage *icon) {
     [unthemed setProperty:icon forKey:@"iconImage"];
     [unthemed setProperty:icon forKey:@"thisIcon"];
     [_specifiers insertObject:unthemed atIndex:0];
-    originalSpecifiers = [_specifiers mutableCopy];
+    self.originalSpecifiers = [_specifiers mutableCopy];
   }
   return _specifiers;
-}
-
-- (void)viewDidLoad {
-  [super viewDidLoad];
-  searchController = [UISearchController new];
-  searchController.searchResultsUpdater = self;
-  searchController.hidesNavigationBarDuringPresentation = NO;
-  searchController.dimsBackgroundDuringPresentation = NO;
-  searchController.searchBar.delegate = self;
-  if (@available(iOS 11, *)) self.navigationItem.searchController = searchController;
-  else self.table.tableHeaderView = searchController.searchBar;
-}
-
-- (void)updateSearchResultsForSearchController:(UISearchController *)controller {
-  NSString *text = controller.searchBar.text;
-  if (text.length == 0) {
-    self.specifiers = originalSpecifiers;
-    return;
-  }
-  NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(PSSpecifier *specifier, NSDictionary *bindings) {
-    return [specifier.name.lowercaseString rangeOfString:text.lowercaseString].location != NSNotFound;
-  }];
-  self.specifiers = [[originalSpecifiers filteredArrayUsingPredicate:predicate] mutableCopy];
-}
-
-- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
-  self.specifiers = originalSpecifiers;
 }
 
 @end

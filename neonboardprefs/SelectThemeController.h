@@ -1,6 +1,4 @@
-#import <Preferences/PSListController.h>
+#import "PSSearchableListController.h"
 
-@interface SelectThemeController : PSListController <UISearchResultsUpdating, UISearchBarDelegate>
-@property (nonatomic, retain) UISearchController *searchController;
-@property (nonatomic, retain) NSMutableArray *originalSpecifiers;
+@interface SelectThemeController : PSSearchableListController
 @end

@@ -25,8 +25,6 @@ void respring();
 
 @implementation SelectIconController
 
-@synthesize searchController;
-@synthesize originalSpecifiers;
 
 // top option somewhere idk should be the selected app's icon; then the other app's icons
 // tableview too. but with search.
@@ -53,6 +51,7 @@ void respring();
 				[_specifiers addObject:loadButton];
 			} else self.shouldAutoLoadIcons = YES;
 		}
+		self.originalSpecifiers = _specifiers;
 	}
 	if (self.iconSpecifiers.count != 0) [_specifiers addObjectsFromArray:self.iconSpecifiers];
   return _specifiers;
@@ -86,6 +85,7 @@ void respring();
 		[self presentViewController:progressAlert animated:YES completion:nil];
 	} else {
 		progressAlert = [[UIAlertView alloc] initWithTitle:@"Loading icons, be patient..." message:@"" delegate:nil cancelButtonTitle:nil otherButtonTitles:nil];
+		[progressAlert setMessage:[NSString stringWithFormat:@"Loading icon 0 of %lu...", (unsigned long)bundleIDs.count]];
 		[progressAlert show];
 	}
 	self.iconSpecifiers = [NSMutableArray new];
@@ -108,7 +108,7 @@ void respring();
       });
 		}
 		[_specifiers addObjectsFromArray:self.iconSpecifiers];
-		originalSpecifiers = [_specifiers mutableCopy];
+		self.originalSpecifiers = [_specifiers mutableCopy];
 		dispatch_async(dispatch_get_main_queue(), ^{
 			if (@available(iOS 8, *)) [self dismissViewControllerAnimated:YES completion:nil];
 			else [progressAlert dismissWithClickedButtonIndex:-1 animated:YES];
@@ -183,34 +183,6 @@ PSSpecifier *globalSender;
 	if (@available(iOS 11, *)) [prefs writeToURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil];
 	else [prefs writeToFile:@PLIST_PATH_Settings atomically:YES];
 	[self showRespringAlert];
-}
-
-- (void)viewDidLoad {
-	[super viewDidLoad];
-	// add search
-	searchController = [UISearchController new];
-	searchController.searchResultsUpdater = self;
-	searchController.hidesNavigationBarDuringPresentation = NO;
-	searchController.dimsBackgroundDuringPresentation = NO;
-	searchController.searchBar.delegate = self;
-	if (@available(iOS 11, *)) self.navigationItem.searchController = searchController;
-	else self.table.tableHeaderView = searchController.searchBar;
-}
-
-- (void)updateSearchResultsForSearchController:(UISearchController *)controller {
-  NSString *text = controller.searchBar.text;
-  if (text.length == 0) {
-    self.specifiers = originalSpecifiers;
-    return;
-  }
-  NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(PSSpecifier *specifier, NSDictionary *bindings) {
-    return [specifier.name.lowercaseString rangeOfString:text.lowercaseString].location != NSNotFound;
-  }];
-  self.specifiers = [[originalSpecifiers filteredArrayUsingPredicate:predicate] mutableCopy];
-}
-
-- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
-  self.specifiers = originalSpecifiers;
 }
 
 @end
