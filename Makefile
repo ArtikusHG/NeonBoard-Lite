@@ -4,7 +4,7 @@ export ARCHS = armv7 arm64 arm64e
 #export ARCHS = arm64
 export TARGET = iphone:clang:13.5:7.0
 
-THEOS_DEVICE_IP = 192.168.0.18
+THEOS_DEVICE_IP = 192.168.0.34
 #THEOS_DEVICE_PORT = 2222
 
 include $(THEOS)/makefiles/common.mk

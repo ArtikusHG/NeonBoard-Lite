@@ -2,7 +2,7 @@ include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = neonboardprefs
 
-neonboardprefs_FILES = NBPRootListController.m CustomizationController.m ThemeListViewController.m PSSearchableListController.m OverridesController.m SelectAppController.m SelectThemeController.m SelectIconController.m
+neonboardprefs_FILES = NBPShared.m NBPRootListController.m NBPThemeCell.m NBPThemeListController.m NBPCustomizationController.m PSSearchableListController.m NBPOverridesController.m NBPSelectAppController.m NBPSelectThemeController.m NBPSelectIconController.m
 neonboardprefs_INSTALL_PATH = /Library/PreferenceBundles
 neonboardprefs_FRAMEWORKS = UIKit
 neonboardprefs_PRIVATE_FRAMEWORKS = Preferences AppSupport

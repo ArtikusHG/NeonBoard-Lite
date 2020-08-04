@@ -8,59 +8,45 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
+			<string>Theming options</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>detail</key>
+			<string>NBPThemeListController</string>
+			<key>label</key>
 			<string>Manage themes</string>
 		</dict>
 		<dict>
 			<key>cell</key>
 			<string>PSLinkCell</string>
 			<key>detail</key>
-			<string>ThemeListViewController</string>
-			<key>label</key>
-			<string>Themes</string>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSGroupCell</string>
-			<key>label</key>
-			<string>Customization options</string>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSLinkCell</string>
-			<key>detail</key>
-			<string>CustomizationController</string>
-			<key>label</key>
-			<string>Customization options</string>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSGroupCell</string>
-			<key>label</key>
-			<string>Manage theme overrides (alternative icons)</string>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSLinkCell</string>
-			<key>detail</key>
-			<string>OverridesController</string>
+			<string>NBPOverridesController</string>
 			<key>label</key>
 			<string>Manage overrides</string>
 		</dict>
 		<dict>
 			<key>cell</key>
-			<string>PSGroupCell</string>
-			<key>label</key>
-			<string>Glyph mode: enable when using glyph themes (leave disabled otherwise to avoid issues)</string>
-		</dict>
-		<dict>
-			<key>cell</key>
 			<string>PSSwitchCell</string>
-			<key>defaults</key>
-			<string>com.artikus.neonboardprefs</string>
 			<key>key</key>
 			<string>kGlyphMode</string>
 			<key>label</key>
 			<string>Glyph mode</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Customization options</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>detail</key>
+			<string>NBPCustomizationController</string>
+			<key>label</key>
+			<string>Customization options</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -97,14 +83,6 @@
 			<string>PSButtonCell</string>
 			<key>label</key>
 			<string>GitHub (the source code's there)</string>
-		</dict>
-		<dict>
-			<key>action</key>
-			<string>soundcloud</string>
-			<key>cell</key>
-			<string>PSButtonCell</string>
-			<key>label</key>
-			<string>SoundCloud (I make trash music)</string>
 		</dict>
 	</array>
 	<key>title</key>

@@ -1,25 +1,13 @@
 #include <Preferences/PSSpecifier.h>
 #include <Preferences/PSTableCell.h>
 #include "../Neon.h"
-#include "OverridesController.h"
+#include "NBPShared.h"
+#include "NBPOverridesController.h"
 
-#define PLIST_PATH_Settings "/var/mobile/Library/Preferences/com.artikus.neonboardprefs.plist"
-
-NSDictionary *prefsDict() {
-  if (@available(iOS 11, *)) return [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil] ? : [NSMutableDictionary dictionary];
-  return [NSDictionary dictionaryWithContentsOfFile:@PLIST_PATH_Settings] ? : [NSMutableDictionary dictionary];
-}
-
-void writePrefsDict(NSDictionary *dict) {
-  if (@available(iOS 11, *)) [dict writeToURL:[NSURL fileURLWithPath:@PLIST_PATH_Settings] error:nil];
-  else [dict writeToFile:@PLIST_PATH_Settings atomically:YES];
-}
-
-@interface OverrideCell : PSTableCell
+@interface NBPOverrideCell : PSTableCell
 @end
 
-@implementation OverrideCell
-
+@implementation NBPOverrideCell
 - (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier specifier:(PSSpecifier *)specifier {
   if (self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier specifier:specifier]) {
     self.detailTextLabel.text = [specifier propertyForKey:@"detailText"];
@@ -27,12 +15,11 @@ void writePrefsDict(NSDictionary *dict) {
   }
   return nil;
 }
-
 @end
 
-@implementation OverridesController
+@implementation NBPOverridesController
 
-OverridesController *sharedInstance;
+NBPOverridesController *sharedInstance;
 
 + (instancetype)sharedInstance {
   return sharedInstance;
@@ -49,7 +36,7 @@ OverridesController *sharedInstance;
   if (!_specifiers || (overrideThemes && self.previousOverrideCount && overrideThemes.count != self.previousOverrideCount)) {
     _specifiers = [NSMutableArray new];
     [_specifiers addObject:[PSSpecifier groupSpecifierWithName:@"Add a new override"]];
-    [_specifiers addObject:[PSSpecifier preferenceSpecifierNamed:@"Add override" target:self set:nil get:nil detail:NSClassFromString(@"SelectAppController") cell:PSLinkCell edit:nil]];
+    [_specifiers addObject:[PSSpecifier preferenceSpecifierNamed:@"Add override" target:self set:nil get:nil detail:NSClassFromString(@"NBPSelectAppController") cell:PSLinkCell edit:nil]];
 
     if (overrideThemes && [overrideThemes isKindOfClass:[NSDictionary class]] && overrideThemes.count != 0) {
       [_specifiers addObject:[PSSpecifier groupSpecifierWithName:@"Manage overrides"]];
@@ -58,7 +45,7 @@ OverridesController *sharedInstance;
         LSApplicationProxy *proxy = [NSClassFromString(@"LSApplicationProxy") applicationProxyForIdentifier:key];
         NSString *title = (proxy) ? proxy.localizedName : key;
         PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:title target:self set:nil get:nil detail:nil cell:PSTitleValueCell edit:nil];
-        [specifier setProperty:[OverrideCell class] forKey:@"cellClass"];
+        [specifier setProperty:[NBPOverrideCell class] forKey:@"cellClass"];
         NSString *detailText = overrideThemes[key];
         if ([detailText isEqualToString:@"none"]) detailText = @"Unthemed / stock";
         else {
@@ -114,7 +101,7 @@ OverridesController *sharedInstance;
 
 // swipe to delete should only be allowed on the override cells; we don't want the "Add override" cell deleted.
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-  return [[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[OverrideCell class]];
+  return [[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[NBPOverrideCell class]];
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
