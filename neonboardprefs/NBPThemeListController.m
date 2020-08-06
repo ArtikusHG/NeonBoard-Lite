@@ -4,6 +4,7 @@
 #include "NBPThemeListController.h"
 
 NSString *themeNameFromDirectoryName(NSString *themeName) {
+  if (themeName.length <= 6) return themeName;
   return ([[themeName substringFromIndex:themeName.length - 6] isEqualToString:@".theme"]) ? [themeName substringToIndex:themeName.length - 6] : themeName;
 }
 
