@@ -34,6 +34,7 @@
         [specifier setProperty:[self.specifier propertyForKey:@"appBundleID"] forKey:@"appBundleID"];
         [specifier setProperty:theme forKey:@"themeName"];
         [specifier setProperty:themePath forKey:@"themePath"];
+        [specifier setProperty:@65 forKey:@"height"];
         [_specifiers addObject:specifier];
       }
     }
@@ -46,6 +47,7 @@
     [unthemed setProperty:@"Unthemed icon" forKey:@"detailText"];
     [unthemed setProperty:@"none" forKey:@"themeName"];
     [unthemed setProperty:[self.specifier propertyForKey:@"appBundleID"] forKey:@"appBundleID"];
+    [unthemed setProperty:@65 forKey:@"height"];
     [_specifiers insertObject:unthemed atIndex:0];
     self.originalSpecifiers = [_specifiers mutableCopy];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -92,7 +94,7 @@
         }
         [specifier setProperty:icon forKey:@"iconImage"];
         dispatch_async(dispatch_get_main_queue(), ^{
-          [[specifier propertyForKey:@"cellObject"] refreshCellContentsWithSpecifier:specifier];
+          [self.table reloadData];
         });
       }
     });

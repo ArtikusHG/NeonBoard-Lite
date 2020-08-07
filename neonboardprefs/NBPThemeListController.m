@@ -31,6 +31,7 @@ NSString *themeNameFromDirectoryName(NSString *themeName) {
   [themeIcons removeObject:@"Icon.png"];
   [themeIcons removeObject:@"icon.png"];
   [specifier setProperty:[NSString stringWithFormat:@"%lu icons", (unsigned long)themeIcons.count] forKey:@"detailText"];
+  [specifier setProperty:@65 forKey:@"height"];
   return specifier;
 }
 
@@ -88,7 +89,7 @@ NSString *themeNameFromDirectoryName(NSString *themeName) {
           icon = iconForCellFromIcon(icon, CGSizeMake(55, 55));
           [specifier setProperty:icon forKey:@"iconImage"];
           dispatch_async(dispatch_get_main_queue(), ^{
-            [[specifier propertyForKey:@"cellObject"] refreshCellContentsWithSpecifier:specifier];
+            [self.table reloadData];
           });
         }
         [specifier removePropertyForKey:@"themePath"];
